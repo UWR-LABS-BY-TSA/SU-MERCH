@@ -7,21 +7,11 @@ import {
   Bloom,
   Vignette,
   N8AO,
-  GodRays,
 } from "@react-three/postprocessing"
-import { BlendFunction, KernelSize } from "postprocessing"
-import { Suspense, useMemo, useState } from "react"
-import * as THREE from "three"
+import { Suspense } from "react"
 import { SceneContent } from "./scene"
 
 export default function StoreCanvas() {
-  // GodRays needs a ref to a visible mesh in the scene. Using a ref
-  // callback pumps the mesh into state once it mounts. A fallback Mesh
-  // is used until then so GodRays can always render (EffectComposer's
-  // children type doesn't accept conditional null).
-  const [sun, setSun] = useState<THREE.Mesh | null>(null)
-  const fallbackSun = useMemo(() => new THREE.Mesh(), [])
-
   return (
     <Canvas
       shadows="percentage"
@@ -42,15 +32,6 @@ export default function StoreCanvas() {
           <SceneContent />
         </ScrollControls>
 
-        {/* Sun for GodRays — larger, higher, and positioned above the
-            crest so the camera catches it during both the hero approach
-            AND anywhere the camera pans up. Bright enough that the rays
-            read clearly through Bloom. */}
-        <mesh ref={setSun} position={[0, 7.2, -13.4]}>
-          <sphereGeometry args={[0.35, 24, 24]} />
-          <meshBasicMaterial color="#fff2c4" toneMapped={false} />
-        </mesh>
-
         <EffectComposer multisampling={0} enableNormalPass>
           {/* Ambient occlusion — softer intensity so corners ground
               without muddying the overall read. */}
@@ -59,21 +40,6 @@ export default function StoreCanvas() {
             intensity={1.2}
             distanceFalloff={0.6}
             quality="performance"
-          />
-          {/* God rays — cranked so the shafts are unmistakable when
-              the sun is in view. KernelSize MEDIUM blurs a touch more
-              for softer shafts. */}
-          <GodRays
-            sun={sun ?? fallbackSun}
-            blendFunction={BlendFunction.SCREEN}
-            samples={60}
-            density={0.97}
-            decay={0.92}
-            weight={0.9}
-            exposure={0.7}
-            clampMax={1}
-            kernelSize={KernelSize.MEDIUM}
-            blur
           />
           <Bloom
             intensity={0.9}

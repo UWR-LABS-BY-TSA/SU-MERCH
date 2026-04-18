@@ -803,26 +803,18 @@ function OverheadBanner() {
           roughness={0.25}
         />
       </mesh>
-      {/* Centered emblem — "EST. 2026" in brass serif */}
+      {/* "Welcome to Streamer U" in Graduate — a classic collegiate /
+          varsity block-letter typeface. Single line across the banner. */}
       <Text
-        position={[0, BANNER_CENTER_Y + 0.15, 0.008]}
-        fontSize={0.28}
+        position={[0, BANNER_CENTER_Y, 0.01]}
+        fontSize={0.5}
+        font="/fonts/Graduate-Regular.ttf"
         color={PALETTE.brassBright}
         anchorX="center"
         anchorY="middle"
-        letterSpacing={0.25}
+        letterSpacing={0.06}
       >
-        STREAMER LIONS
-      </Text>
-      <Text
-        position={[0, BANNER_CENTER_Y - 0.35, 0.008]}
-        fontSize={0.12}
-        color={PALETTE.brassBright}
-        anchorX="center"
-        anchorY="middle"
-        letterSpacing={0.4}
-      >
-        CLASS OF 2026
+        WELCOME TO STREAMER U
       </Text>
     </group>
   )
@@ -959,27 +951,6 @@ export function SceneContent() {
         swayOffset={0.7}
       />
 
-      {/* ===== WELCOME SIGN ABOVE ENTRANCE (facing inward) ===== */}
-      <group position={[0, 3.4, 3.95]} rotation={[0, Math.PI, 0]}>
-        <mesh>
-          <boxGeometry args={[5.5, 1, 0.15]} />
-          <meshStandardMaterial color={PALETTE.walnut} roughness={0.6} />
-        </mesh>
-        <mesh position={[0, 0, 0.08]}>
-          <boxGeometry args={[5.1, 0.75, 0.05]} />
-          <meshStandardMaterial color={PALETTE.cream} roughness={0.8} />
-        </mesh>
-        <Text
-          position={[0, 0, 0.12]}
-          fontSize={0.16}
-          color={PALETTE.walnut}
-          anchorX="center"
-          anchorY="middle"
-          letterSpacing={0.3}
-        >
-          THE OFFICIAL CAMPUS STORE · EST. 2026
-        </Text>
-      </group>
 
       {/* ===== LEFT WALL: HOODIES + TEES ===== */}
       <group position={[-6.2, 0, -3]} rotation={[0, Math.PI / 2, 0]}>
