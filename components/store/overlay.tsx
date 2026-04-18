@@ -107,16 +107,28 @@ export function Overlay() {
         </div>
       )}
 
-      {/* ===== Scroll/drag hint — active only, fades once user moves ===== */}
+      {/* ===== Entrance welcome + scroll hint — fades once user moves ===== */}
       {activeUi && (
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-12 flex flex-col items-center gap-3 transition-opacity duration-500"
-          style={{ opacity: Math.max(0, 1 - scrollPct * 20) }}
+          className="pointer-events-none absolute inset-x-0 bottom-14 flex flex-col items-center gap-5 px-6 transition-opacity duration-500"
+          style={{ opacity: Math.max(0, 1 - scrollPct * 14) }}
         >
-          <span className="font-serif text-base font-semibold italic tracking-[0.32em] text-accent drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] md:text-xl">
-            scroll or drag to walk
-          </span>
-          <ChevronDown className="h-6 w-6 animate-bounce text-accent drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]" />
+          {/* Brand welcome */}
+          <div className="flex flex-col items-center gap-2">
+            <h2 className="font-serif text-2xl italic text-[#FFB100] drop-shadow-[0_3px_14px_rgba(0,0,0,0.9)] md:text-4xl">
+              Welcome to the SU Bookstore
+            </h2>
+            {/* Brass rule under the title */}
+            <span className="block h-[2px] w-32 bg-gradient-to-r from-transparent via-[#FFB100] to-transparent" />
+          </div>
+
+          {/* Scroll hint */}
+          <div className="flex flex-col items-center gap-2">
+            <span className="font-serif text-sm font-semibold italic tracking-[0.32em] text-[#FFB100] drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] md:text-lg">
+              scroll or drag to walk
+            </span>
+            <ChevronDown className="h-5 w-5 animate-bounce text-[#FFB100] drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]" />
+          </div>
         </div>
       )}
 

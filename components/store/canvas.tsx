@@ -35,7 +35,10 @@ export default function StoreCanvas() {
     >
       <color attach="background" args={["#14100c"]} />
       <Suspense fallback={null}>
-        <ScrollControls pages={2} damping={0.25} distance={1}>
+        {/* pages=5 makes the full hall walk span 5 viewport-heights of
+            scroll instead of 2 — one wheel tick is no longer enough to
+            fling the camera straight to the Hall of Honor. */}
+        <ScrollControls pages={5} damping={0.25} distance={1}>
           <SceneContent />
         </ScrollControls>
 

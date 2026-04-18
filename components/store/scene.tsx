@@ -228,6 +228,12 @@ export function CameraRig() {
       setScrollOffset(t)
 
       if (progress >= 1) {
+        // Pin scrollTop to 0 again at the exact moment of handoff so the
+        // scroll-driven camera path starts cleanly at t=0 (the entrance
+        // Grand Foyer). Prevents any leftover damping pushing the camera
+        // off-entrance when the user's first scroll arrives.
+        const el = scroll.el as HTMLElement | null
+        if (el) el.scrollTop = 0
         setIntroMode("active")
         introAnimStartRef.current = null
       }
