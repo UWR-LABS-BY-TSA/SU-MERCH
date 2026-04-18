@@ -20,24 +20,36 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   title: "Streamer University — The Campus Store",
   description:
-    "Step inside the official Streamer University campus store. An immersive 3D journey through collegiate merch, hoodies, tees, and accessories.",
-  generator: "v0.app",
+    "Step inside the official Streamer University campus store. An immersive 3D walk through the torchlit hall — hoodies, tees, accessories.",
   icons: {
+    // Smaller monogram for the browser tab; full crest for home-screen
+    // install / bookmark (Apple / Android).
     icon: [
+      { url: "/SU1.png", type: "image/png", sizes: "any" },
+    ],
+    shortcut: "/SU1.png",
+    apple: [
+      { url: "/SUCREST.PNG", type: "image/png", sizes: "512x512" },
+    ],
+  },
+  openGraph: {
+    title: "Streamer University — The Campus Store",
+    description:
+      "The official Streamer University campus store. Step inside the torchlit hall.",
+    images: [
       {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
+        url: "/SUCREST.PNG",
+        alt: "Streamer University crest",
       },
     ],
-    apple: "/apple-icon.png",
+    type: "website",
+    siteName: "Streamer University",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Streamer University — The Campus Store",
+    description: "The official Streamer University campus store.",
+    images: ["/SUCREST.PNG"],
   },
 }
 
