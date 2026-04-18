@@ -89,15 +89,20 @@ export const PALETTE = {
    The hook is a 3/4 loop so it has ONE free tip (the side opening that
    catches the rail) and ONE closing point at the bottom-center — the
    shaft continues out of that point straight down, so the hook and the
-   wire read as a single continuous bent piece of wire. */
+   wire read as a single continuous bent piece of wire.
+
+   `showHanger={false}` hides the hook + shaft so the mockup can be
+   displayed as a floating product (used for the hero plinth). */
 function GarmentMockupFront({
   url,
   width = 1.1,
   height = 1.2,
+  showHanger = true,
 }: {
   url: string
   width?: number
   height?: number
+  showHanger?: boolean
 }) {
   const tex = useTexture(url)
 
@@ -125,24 +130,27 @@ function GarmentMockupFront({
 
   return (
     <group>
-      {/* Hook — 3/4 torus. Free tip at (+HOOK_R, 0), trailing end at
-          (0, -HOOK_R) where the shaft begins. */}
-      <mesh position={[0, HOOK_CENTER_Y, HOOK_Z]}>
-        <torusGeometry args={[HOOK_R, WIRE_R, 12, 30, Math.PI * 1.5]} />
-        <meshStandardMaterial color={CHROME} metalness={0.95} roughness={0.15} />
-      </mesh>
-      {/* Nub on the free tip */}
-      <mesh position={[HOOK_R, HOOK_CENTER_Y, HOOK_Z]}>
-        <sphereGeometry args={[WIRE_R * 1.05, 10, 8]} />
-        <meshStandardMaterial color={CHROME} metalness={0.95} roughness={0.15} />
-      </mesh>
-
-      {/* Shaft — drops from the hook into/through the hoodie, behind the PNG
-          so opaque hood pixels naturally hide its lower half. */}
-      <mesh position={[0, SHAFT_MID_Y, SHAFT_Z]}>
-        <cylinderGeometry args={[WIRE_R, WIRE_R, SHAFT_LEN, 12]} />
-        <meshStandardMaterial color={CHROME} metalness={0.95} roughness={0.15} />
-      </mesh>
+      {showHanger && (
+        <>
+          {/* Hook — 3/4 torus. Free tip at (+HOOK_R, 0), trailing end at
+              (0, -HOOK_R) where the shaft begins. */}
+          <mesh position={[0, HOOK_CENTER_Y, HOOK_Z]}>
+            <torusGeometry args={[HOOK_R, WIRE_R, 12, 30, Math.PI * 1.5]} />
+            <meshStandardMaterial color={CHROME} metalness={0.95} roughness={0.15} />
+          </mesh>
+          {/* Nub on the free tip */}
+          <mesh position={[HOOK_R, HOOK_CENTER_Y, HOOK_Z]}>
+            <sphereGeometry args={[WIRE_R * 1.05, 10, 8]} />
+            <meshStandardMaterial color={CHROME} metalness={0.95} roughness={0.15} />
+          </mesh>
+          {/* Shaft — drops from the hook into/through the hoodie, behind
+              the PNG so opaque hood pixels naturally hide its lower half. */}
+          <mesh position={[0, SHAFT_MID_Y, SHAFT_Z]}>
+            <cylinderGeometry args={[WIRE_R, WIRE_R, SHAFT_LEN, 12]} />
+            <meshStandardMaterial color={CHROME} metalness={0.95} roughness={0.15} />
+          </mesh>
+        </>
+      )}
 
       {/* Mockup PNG — meshBasicMaterial so it shows true colors regardless
           of scene lighting (the Cloakroom is dark, which was making the
@@ -171,6 +179,7 @@ export function HangingGarment({
   onClick,
   productId,
   textureUrl,
+  showHanger = true,
 }: {
   position?: [number, number, number]
   color?: string
@@ -181,6 +190,9 @@ export function HangingGarment({
   onClick?: () => void
   productId?: string
   textureUrl?: string
+  /** When false, hides the chrome hanger so the mockup reads as a
+   *  floating product (used for the hero pedestals). */
+  showHanger?: boolean
 }) {
   const group = useRef<THREE.Group>(null)
   const [hovered, setHovered] = useState(false)
@@ -228,7 +240,7 @@ export function HangingGarment({
       }
     >
       {textureUrl ? (
-        <GarmentMockupFront url={textureUrl} />
+        <GarmentMockupFront url={textureUrl} showHanger={showHanger} />
       ) : (
         <>
           {/* Hanger hook */}
@@ -799,6 +811,45 @@ export function Pedestal({
         <meshStandardMaterial color={PALETTE.brassBright} metalness={0.9} roughness={0.15} />
       </mesh>
       <group position={[0, 1.06, 0]}>{children}</group>
+    </group>
+  )
+}
+
+/* Smaller pedestal variant used for the hero display — scaled-down
+   plinth so the floating hoodie mockup dominates the frame. Same
+   silhouette as Pedestal but renders at 70% size. Children (the
+   hoodie) are rendered at NORMAL world scale via counter-scaling,
+   so the hoodie itself doesn't shrink. */
+export function PedestalSmall({
+  children,
+  scale = 0.7,
+}: {
+  children?: React.ReactNode
+  scale?: number
+}) {
+  return (
+    <group>
+      <group scale={scale}>
+        {/* Column */}
+        <mesh position={[0, 0.55, 0]} castShadow>
+          <cylinderGeometry args={[0.45, 0.55, 0.9, 32]} />
+          <meshStandardMaterial color={PALETTE.cream} roughness={0.85} />
+        </mesh>
+        {/* Top */}
+        <mesh position={[0, 1.03, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.55, 0.5, 0.06, 32]} />
+          <meshStandardMaterial color={PALETTE.walnut} roughness={0.6} />
+        </mesh>
+        {/* Brass band */}
+        <mesh position={[0, 0.12, 0]}>
+          <torusGeometry args={[0.75, 0.015, 8, 48]} />
+          <meshStandardMaterial color={PALETTE.brassBright} metalness={0.9} roughness={0.15} />
+        </mesh>
+      </group>
+      {/* Children positioned at the top of the scaled pedestal in world
+          units (no scale) — so the hoodie stays full-size and floats
+          above a visibly shorter plinth. */}
+      <group position={[0, 1.06 * scale, 0]}>{children}</group>
     </group>
   )
 }

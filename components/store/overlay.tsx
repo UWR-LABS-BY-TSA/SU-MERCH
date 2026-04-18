@@ -115,19 +115,19 @@ export function Overlay() {
         >
           {/* Brand welcome */}
           <div className="flex flex-col items-center gap-2">
-            <h2 className="font-serif text-2xl italic text-[#FFB100] drop-shadow-[0_3px_14px_rgba(0,0,0,0.9)] md:text-4xl">
+            <h2 className="font-serif text-2xl italic text-white drop-shadow-[0_3px_14px_rgba(0,0,0,0.95)] md:text-4xl">
               Welcome to the SU Bookstore
             </h2>
-            {/* Brass rule under the title */}
+            {/* Brass rule under the title — stays gold, decorative */}
             <span className="block h-[2px] w-32 bg-gradient-to-r from-transparent via-[#FFB100] to-transparent" />
           </div>
 
           {/* Scroll hint */}
           <div className="flex flex-col items-center gap-2">
-            <span className="font-serif text-sm font-semibold italic tracking-[0.32em] text-[#FFB100] drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] md:text-lg">
+            <span className="font-serif text-sm font-semibold italic tracking-[0.32em] text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] md:text-lg">
               scroll or drag to walk
             </span>
-            <ChevronDown className="h-5 w-5 animate-bounce text-[#FFB100] drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]" />
+            <ChevronDown className="h-5 w-5 animate-bounce text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]" />
           </div>
         </div>
       )}

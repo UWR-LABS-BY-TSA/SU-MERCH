@@ -11,6 +11,7 @@ import {
   CeilingLamp,
   Bookshelf,
   Pedestal,
+  PedestalSmall,
   HangingGarment,
   FloatingCandles,
   WoodenBench,
@@ -1087,32 +1088,35 @@ export function SceneContent() {
       {/* ===== BACK WALL: HERO CREST ===== */}
       <BackWallCrest />
 
-      {/* Hero pedestals in front of back wall — hoodie mockups front & center */}
+      {/* Hero pedestals — smaller plinths with the hoodie mockups
+          floating above, no hanger wire (reads as a display-piece). */}
       <group position={[-1.8, 0, -11.5]}>
-        <Pedestal>
+        <PedestalSmall scale={0.7}>
           <HangingGarment
-            position={[0, 0.4, 0]}
+            position={[0, 1.25, 0]}
             color={PALETTE.forest}
             type="hoodie"
             label="SU"
             productId="su-crest-hoodie"
             textureUrl="/hoodie-2.png"
+            showHanger={false}
             onClick={() => openProduct("su-crest-hoodie")}
           />
-        </Pedestal>
+        </PedestalSmall>
       </group>
       <group position={[1.8, 0, -11.5]}>
-        <Pedestal>
+        <PedestalSmall scale={0.7}>
           <HangingGarment
-            position={[0, 0.4, 0]}
+            position={[0, 1.25, 0]}
             color={PALETTE.walnut}
             type="hoodie"
             label="VARSITY"
             productId="varsity-hoodie"
             textureUrl="/hoodie-1.png"
+            showHanger={false}
             onClick={() => openProduct("varsity-hoodie")}
           />
-        </Pedestal>
+        </PedestalSmall>
       </group>
 
       {/* Center pedestal removed — it blocked sight lines to the accessories wall. */}
