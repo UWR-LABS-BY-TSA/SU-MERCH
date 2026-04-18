@@ -74,20 +74,6 @@ export function Overlay() {
         </div>
       </header>
 
-      {/* ===== Center tagline — only during active exploration ===== */}
-      {activeUi && (
-        <div
-          className="pointer-events-none flex flex-1 flex-col items-center justify-center px-6 text-center transition-opacity duration-500"
-          style={{ opacity: Math.max(0, 1 - scrollPct * 8) }}
-        >
-          <span className="mb-4 font-serif text-[11px] uppercase tracking-[0.5em] text-accent drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)] md:text-[12px]">
-            — Class of 2026 —
-          </span>
-          <p className="max-w-md font-serif text-base italic leading-relaxed text-background/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] md:text-xl">
-            Step through the torchlit hall.
-          </p>
-        </div>
-      )}
 
       {/* ===== Left-side section rail (primary nav) — active only ===== */}
       {activeUi && (
@@ -124,13 +110,13 @@ export function Overlay() {
       {/* ===== Scroll/drag hint — active only, fades once user moves ===== */}
       {activeUi && (
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-10 flex flex-col items-center gap-2 transition-opacity duration-500"
+          className="pointer-events-none absolute inset-x-0 bottom-12 flex flex-col items-center gap-3 transition-opacity duration-500"
           style={{ opacity: Math.max(0, 1 - scrollPct * 20) }}
         >
-          <span className="font-serif text-[12px] italic tracking-[0.25em] text-background/90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+          <span className="font-serif text-base font-semibold italic tracking-[0.32em] text-accent drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] md:text-xl">
             scroll or drag to walk
           </span>
-          <ChevronDown className="h-4 w-4 animate-bounce text-accent drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]" />
+          <ChevronDown className="h-6 w-6 animate-bounce text-accent drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]" />
         </div>
       )}
 
