@@ -1,12 +1,12 @@
 "use client"
 
 import Image from "next/image"
-import Link from "next/link"
 import { ShoppingBag, ChevronDown } from "lucide-react"
 import { useScrollOffset, scrollToPct } from "./scroll-store"
 import { ProductPanel } from "./product-panel"
 import { cartCount, useCart } from "./cart-store"
 import { HallAudio } from "./hall-audio"
+import { useIntroMode, setIntroMode } from "./intro-store"
 
 const SECTIONS = [
   { label: "The Grand Foyer", at: 0 },
@@ -20,7 +20,10 @@ export function Overlay() {
   const scrollPct = useScrollOffset()
   const cart = useCart()
   const bagCount = cartCount(cart)
-  const started = scrollPct > 0.02
+  const mode = useIntroMode()
+
+  const activeUi = mode === "active"
+  const started = activeUi && scrollPct > 0.02
 
   const currentSection = SECTIONS.reduce(
     (acc, s) => (scrollPct >= s.at - 0.05 ? s.label : acc),
@@ -29,12 +32,16 @@ export function Overlay() {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-10 flex flex-col">
-      {/* ===== Top bar — minimal: crest home-link + bag + audio ===== */}
-      <header className="flex items-center justify-between px-6 py-5 md:px-10">
-        <Link
-          href="/"
-          aria-label="Back to the gates"
-          className="pointer-events-auto group relative flex h-11 w-11 items-center justify-center rounded-full border border-accent/50 bg-background/10 backdrop-blur-md transition hover:border-accent hover:bg-background/20"
+      {/* ===== Top bar — fades in once the user has entered ===== */}
+      <header
+        className="flex items-center justify-between px-6 py-5 transition-opacity duration-700 md:px-10"
+        style={{ opacity: activeUi ? 1 : 0 }}
+      >
+        <button
+          onClick={() => scrollToPct(0)}
+          aria-label="Back to the entrance"
+          disabled={!activeUi}
+          className="pointer-events-auto group relative flex h-11 w-11 items-center justify-center rounded-full border border-accent/50 bg-background/10 backdrop-blur-md transition hover:border-accent hover:bg-background/20 disabled:opacity-0"
         >
           <Image
             src="/SUCREST.PNG"
@@ -44,11 +51,13 @@ export function Overlay() {
             className="drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
           />
           <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap font-serif text-[10px] italic tracking-[0.2em] text-background/0 transition group-hover:text-background/80">
-            back to the gates
+            back to the entrance
           </span>
-        </Link>
+        </button>
 
-        <div className="pointer-events-auto flex items-center gap-2">
+        <div
+          className={`${activeUi ? "pointer-events-auto" : "pointer-events-none"} flex items-center gap-2`}
+        >
           <HallAudio />
           <button
             aria-label={`Bag · ${bagCount} item${bagCount === 1 ? "" : "s"}`}
@@ -65,62 +74,112 @@ export function Overlay() {
         </div>
       </header>
 
-      {/* ===== Center tagline (fades out on scroll) ===== */}
-      <div
-        className="pointer-events-none flex flex-1 flex-col items-center justify-center px-6 text-center transition-opacity duration-500"
-        style={{ opacity: Math.max(0, 1 - scrollPct * 8) }}
-      >
-        <span className="mb-4 font-serif text-[11px] uppercase tracking-[0.5em] text-accent drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)] md:text-[12px]">
-          — Class of 2026 —
-        </span>
-        <p className="max-w-md font-serif text-base italic leading-relaxed text-background/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] md:text-xl">
-          Step through the torchlit hall.
-        </p>
-      </div>
+      {/* ===== Center tagline — only during active exploration ===== */}
+      {activeUi && (
+        <div
+          className="pointer-events-none flex flex-1 flex-col items-center justify-center px-6 text-center transition-opacity duration-500"
+          style={{ opacity: Math.max(0, 1 - scrollPct * 8) }}
+        >
+          <span className="mb-4 font-serif text-[11px] uppercase tracking-[0.5em] text-accent drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)] md:text-[12px]">
+            — Class of 2026 —
+          </span>
+          <p className="max-w-md font-serif text-base italic leading-relaxed text-background/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] md:text-xl">
+            Step through the torchlit hall.
+          </p>
+        </div>
+      )}
 
-      {/* ===== Left-side section rail (primary nav) ===== */}
-      <div
-        className="pointer-events-auto absolute left-6 top-1/2 hidden -translate-y-1/2 flex-col gap-3 transition-opacity duration-500 md:flex md:left-10"
-        style={{ opacity: started ? 1 : 0 }}
-      >
-        {SECTIONS.map((s, i) => {
-          const active = currentSection === s.label
-          return (
-            <button
-              key={s.label}
-              onClick={() => scrollToPct(s.at)}
-              className="flex items-center gap-3 text-left"
-            >
-              <span
-                className={`h-[1px] transition-all duration-300 ${
-                  active ? "w-10 bg-accent" : "w-4 bg-background/40"
-                }`}
-              />
-              <span
-                className={`font-serif text-[12px] tracking-[0.2em] transition-colors drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)] ${
-                  active ? "text-accent italic" : "text-background/50 hover:text-background/80"
-                }`}
+      {/* ===== Left-side section rail (primary nav) — active only ===== */}
+      {activeUi && (
+        <div
+          className="pointer-events-auto absolute left-6 top-1/2 hidden -translate-y-1/2 flex-col gap-3 transition-opacity duration-500 md:flex md:left-10"
+          style={{ opacity: started ? 1 : 0 }}
+        >
+          {SECTIONS.map((s, i) => {
+            const active = currentSection === s.label
+            return (
+              <button
+                key={s.label}
+                onClick={() => scrollToPct(s.at)}
+                className="flex items-center gap-3 text-left"
               >
-                {String(i + 1).padStart(2, "0")} · {s.label}
-              </span>
-            </button>
-          )
-        })}
-      </div>
+                <span
+                  className={`h-[1px] transition-all duration-300 ${
+                    active ? "w-10 bg-accent" : "w-4 bg-background/40"
+                  }`}
+                />
+                <span
+                  className={`font-serif text-[12px] tracking-[0.2em] transition-colors drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)] ${
+                    active ? "text-accent italic" : "text-background/50 hover:text-background/80"
+                  }`}
+                >
+                  {String(i + 1).padStart(2, "0")} · {s.label}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
 
-      {/* ===== Initial scroll/drag hint (fades out once the user moves) ===== */}
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-10 flex flex-col items-center gap-2 transition-opacity duration-500"
-        style={{ opacity: Math.max(0, 1 - scrollPct * 20) }}
-      >
-        <span className="font-serif text-[12px] italic tracking-[0.25em] text-background/90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
-          scroll or drag to walk
-        </span>
-        <ChevronDown className="h-4 w-4 animate-bounce text-accent drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]" />
-      </div>
+      {/* ===== Scroll/drag hint — active only, fades once user moves ===== */}
+      {activeUi && (
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-10 flex flex-col items-center gap-2 transition-opacity duration-500"
+          style={{ opacity: Math.max(0, 1 - scrollPct * 20) }}
+        >
+          <span className="font-serif text-[12px] italic tracking-[0.25em] text-background/90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+            scroll or drag to walk
+          </span>
+          <ChevronDown className="h-4 w-4 animate-bounce text-accent drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]" />
+        </div>
+      )}
+
+      {/* ===== Intro overlay — back-wall view with ENTER button ===== */}
+      {mode !== "active" && <IntroOverlay animating={mode === "animating"} />}
 
       {/* ===== Product detail panel (slide-in) ===== */}
       <ProductPanel />
+    </div>
+  )
+}
+
+function IntroOverlay({ animating }: { animating: boolean }) {
+  const handleEnter = () => {
+    if (animating) return
+    // CameraRig's useFrame handles the actual camera animation and
+    // transition to "active" — it detects the mode change and runs a
+    // straight hero→entrance lerp locally (bypassing scripted pivots).
+    setIntroMode("animating")
+  }
+
+  return (
+    <div
+      className={`${animating ? "pointer-events-none" : "pointer-events-auto"} fixed inset-0 z-40 flex flex-col items-center justify-end pb-20 transition-opacity duration-[900ms] ease-out md:pb-28`}
+      style={{ opacity: animating ? 0 : 1 }}
+    >
+      {/* Subtle radial darken so the ENTER button stays readable */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.2)_45%,transparent_75%)]" />
+
+      <div className="relative flex flex-col items-center gap-5 px-6 text-center">
+        <span className="font-serif text-[11px] uppercase tracking-[0.5em] text-[#FFB100] drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] md:text-[12px]">
+          — Welcome, Class of 2026 —
+        </span>
+        <p className="max-w-md font-serif text-base italic leading-relaxed text-[#f1e6c8]/95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] md:text-lg">
+          The torches are lit. The hall awaits.
+        </p>
+        <button
+          onClick={handleEnter}
+          disabled={animating}
+          className="group mt-3 flex items-center gap-4 rounded-sm border-2 border-[#FFB100] bg-[#93000B]/55 px-8 py-4 backdrop-blur-sm transition hover:bg-[#FFB100] disabled:opacity-60"
+        >
+          <span className="font-serif text-sm tracking-[0.3em] text-[#FFB100] transition group-hover:text-[#14100c]">
+            ENTER THE CAMPUS
+          </span>
+          <span className="text-lg text-[#FFB100] transition group-hover:translate-x-1 group-hover:text-[#14100c]">
+            →
+          </span>
+        </button>
+      </div>
     </div>
   )
 }

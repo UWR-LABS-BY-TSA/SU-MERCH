@@ -26,7 +26,10 @@ export default function StoreCanvas() {
     <Canvas
       shadows="percentage"
       dpr={[1, 1.5]}
-      camera={{ position: [0, 1.7, 9], fov: 48, near: 0.1, far: 200 }}
+      // Start at the Hall of Honor pose so the first paint shows the
+      // back-wall crest — matches the intro state. CameraRig snaps this
+      // precisely on first useFrame regardless.
+      camera={{ position: [0, 1.8, -10.5], fov: 48, near: 0.1, far: 200 }}
       gl={{ antialias: true, preserveDrawingBuffer: false, powerPreference: "high-performance" }}
       style={{ position: "fixed", inset: 0, width: "100%", height: "100%" }}
     >

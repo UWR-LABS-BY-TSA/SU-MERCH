@@ -51,6 +51,38 @@ export function scrollToPct(pct: number, smooth = true) {
   requestAnimationFrame(step)
 }
 
+/**
+ * Animate scroll over a custom duration with an ease-out curve and an
+ * optional completion callback. Used by the intro to sweep from the
+ * hero reveal (pct=1) back to the entrance (pct=0) over ~4 seconds.
+ */
+export function scrollAnimate(
+  toPct: number,
+  durationMs: number,
+  onComplete?: () => void
+) {
+  if (!_scrollEl) return
+  const el = _scrollEl
+  const clamped = Math.max(0, Math.min(1, toPct))
+  const max = el.scrollHeight - el.clientHeight
+  const targetTop = clamped * max
+  const startTop = el.scrollTop
+  const startTime = performance.now()
+  const step = (now: number) => {
+    const t = Math.min(1, (now - startTime) / durationMs)
+    // Cubic ease-out — fast start, slow landing (feels cinematic)
+    const eased = 1 - Math.pow(1 - t, 3)
+    el.scrollTop = startTop + (targetTop - startTop) * eased
+    setScrollOffset(el.scrollTop / max)
+    if (t < 1) {
+      requestAnimationFrame(step)
+    } else {
+      onComplete?.()
+    }
+  }
+  requestAnimationFrame(step)
+}
+
 export function useScrollOffset() {
   const [value, setValue] = useState(0)
   useEffect(() => {

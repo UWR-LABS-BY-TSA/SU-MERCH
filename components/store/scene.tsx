@@ -16,8 +16,9 @@ import {
   WoodenBench,
   TomeStack,
 } from "./primitives"
-import { setScrollOffset, setScrollEl } from "./scroll-store"
+import { setScrollOffset, setScrollEl, scrollToPct } from "./scroll-store"
 import { openProduct } from "./cart-store"
+import { getIntroMode, setIntroMode } from "./intro-store"
 
 /* Boutique room dimensions — tight showroom, not a long aisle.
    x: -8 to +8 (width 16)
@@ -74,6 +75,12 @@ export function CameraRig() {
   const targetLook = useRef(new THREE.Vector3(0, 1.6, -5))
   const prevOffset = useRef(0)
   const bobPhase = useRef(0)
+  // Snap the camera (no lerp) on the very first frame so the intro
+  // starts perfectly at the Hall of Honor pose with zero drift.
+  const firstFrameRef = useRef(true)
+  // Local timer for the reverse intro animation (ignores drei scroll
+  // damping so the pullback feels clean and the right duration).
+  const introAnimStartRef = useRef<number | null>(null)
 
   /* Drag-to-scroll state — dragging on the canvas adjusts scroll position */
   const dragState = useRef<{
@@ -85,8 +92,35 @@ export function CameraRig() {
   } | null>(null)
 
   useEffect(() => {
-    setScrollEl(scroll.el as HTMLElement)
+    const el = scroll.el as HTMLElement | null
+    if (!el) return
+    setScrollEl(el)
+    // On first mount, if we're still in the intro phase, jump the camera
+    // to the back wall (hero reveal). Defer one frame so ScrollControls
+    // has had time to compute its scrollHeight.
+    if (getIntroMode() === "intro") {
+      requestAnimationFrame(() => scrollToPct(1, false))
+    }
     return () => setScrollEl(null)
+  }, [scroll.el])
+
+  // Block wheel + touch-scroll during the intro + reverse animation so
+  // the user can't override the camera while it's flying. Programmatic
+  // setting of scroll.el.scrollTop (from scrollAnimate) still works.
+  useEffect(() => {
+    const el = scroll.el as HTMLElement | null
+    if (!el) return
+    const block = (e: Event) => {
+      if (getIntroMode() !== "active") {
+        e.preventDefault()
+      }
+    }
+    el.addEventListener("wheel", block, { passive: false })
+    el.addEventListener("touchmove", block, { passive: false })
+    return () => {
+      el.removeEventListener("wheel", block)
+      el.removeEventListener("touchmove", block)
+    }
   }, [scroll.el])
 
   useEffect(() => {
@@ -100,6 +134,8 @@ export function CameraRig() {
     // click/drag inside the 3D hall enters this handler. Overlay buttons
     // are in a separate DOM subtree and don't trigger this.
     const onDown = (e: PointerEvent) => {
+      // Only accept drags after the intro has completed.
+      if (getIntroMode() !== "active") return
       // Ignore drags that start on an interactive descendant (links/buttons)
       const target = e.target as HTMLElement | null
       if (target?.closest("a, button, input, select, textarea")) return
@@ -147,22 +183,88 @@ export function CameraRig() {
   }, [scroll.el])
 
   useFrame((_, delta) => {
-    const t = scroll.offset
-    setScrollOffset(t)
-    const { pos, look } = sampleCameraPath(t)
+    const mode = getIntroMode()
+    let pos: readonly [number, number, number]
+    let look: readonly [number, number, number]
+    let t: number
+
+    if (mode === "intro") {
+      // Locked to the Hall of Honor keyframe — no drift, no drei damping.
+      const kf = sampleCameraPath(1)
+      pos = kf.pos
+      look = kf.look
+      t = 1
+    } else if (mode === "animating") {
+      // STRAIGHT REVERSE — direct lerp between hero and entrance
+      // keyframes, bypassing the scripted intermediate look-arounds.
+      // Result: clean dolly-out / zoom-out with no left/right pivots.
+      if (introAnimStartRef.current === null) {
+        introAnimStartRef.current = performance.now()
+        // Reset scroll.el.scrollTop to 0 at the start of the animation
+        // so drei's damped scroll.offset has the full 4s window to
+        // settle to 0 by the time we hand off to "active" mode.
+        const el = scroll.el as HTMLElement | null
+        if (el) el.scrollTop = 0
+      }
+      const elapsed = performance.now() - introAnimStartRef.current
+      const progress = Math.min(1, elapsed / 4000)
+      // Cubic ease-out: slow start (lingers on the crest), fast middle,
+      // soft landing at the entrance.
+      const eased = 1 - Math.pow(1 - progress, 3)
+
+      const heroKf = sampleCameraPath(1)
+      const entranceKf = sampleCameraPath(0)
+      pos = [
+        heroKf.pos[0] + (entranceKf.pos[0] - heroKf.pos[0]) * eased,
+        heroKf.pos[1] + (entranceKf.pos[1] - heroKf.pos[1]) * eased,
+        heroKf.pos[2] + (entranceKf.pos[2] - heroKf.pos[2]) * eased,
+      ]
+      look = [
+        heroKf.look[0] + (entranceKf.look[0] - heroKf.look[0]) * eased,
+        heroKf.look[1] + (entranceKf.look[1] - heroKf.look[1]) * eased,
+        heroKf.look[2] + (entranceKf.look[2] - heroKf.look[2]) * eased,
+      ]
+      t = 1 - eased
+      setScrollOffset(t)
+
+      if (progress >= 1) {
+        setIntroMode("active")
+        introAnimStartRef.current = null
+      }
+    } else {
+      // Active — follow scroll-driven scripted path as normal.
+      t = scroll.offset
+      setScrollOffset(t)
+      const kf = sampleCameraPath(t)
+      pos = kf.pos
+      look = kf.look
+    }
+
     const targetPos = new THREE.Vector3(...pos)
 
-    /* Walk-cycle bob — driven by scroll velocity */
-    const scrollVel = Math.min(Math.abs(t - prevOffset.current) / Math.max(delta, 0.001), 2)
-    prevOffset.current = t
-    bobPhase.current += delta * (3 + scrollVel * 8)
-    const bob = Math.sin(bobPhase.current) * 0.018 * Math.min(1, scrollVel * 6)
-    const sway = Math.cos(bobPhase.current * 0.5) * 0.008 * Math.min(1, scrollVel * 6)
-    targetPos.y += bob
-    targetPos.x += sway
+    // Walk-cycle bob — only during active navigation, not during the
+    // intro pullback (which should feel cinematic and steady).
+    if (mode === "active") {
+      const scrollVel = Math.min(Math.abs(t - prevOffset.current) / Math.max(delta, 0.001), 2)
+      prevOffset.current = t
+      bobPhase.current += delta * (3 + scrollVel * 8)
+      const bob = Math.sin(bobPhase.current) * 0.018 * Math.min(1, scrollVel * 6)
+      const sway = Math.cos(bobPhase.current * 0.5) * 0.008 * Math.min(1, scrollVel * 6)
+      targetPos.y += bob
+      targetPos.x += sway
+    } else {
+      prevOffset.current = t
+    }
 
-    camera.position.lerp(targetPos, 0.08)
-    targetLook.current.lerp(new THREE.Vector3(...look), 0.08)
+    if (firstFrameRef.current) {
+      // Snap to the target pose on the first frame — no visible lerp-in.
+      camera.position.copy(targetPos)
+      targetLook.current.set(...look)
+      firstFrameRef.current = false
+    } else {
+      camera.position.lerp(targetPos, 0.08)
+      targetLook.current.lerp(new THREE.Vector3(...look), 0.08)
+    }
     camera.lookAt(targetLook.current)
   })
 
@@ -621,6 +723,105 @@ function StainedGlassWindow({
 }
 
 /* ============================================================
+   OVERHEAD BANNER
+   Horizontal burgundy drape suspended across the hall between the
+   entrance (z≈4) and the Hoodies rack (z≈-3). Sits high enough that
+   the camera walks under it at eye level (y≈1.65).
+
+   Bottom edge chosen so from the entrance keyframe
+   (camera at [0, 1.7, 9] looking at [0, 1.7, -5]) the banner's bottom
+   edge projects onto the hero sun's vertical center — hiding the top
+   half of the sun. As the user scrolls forward, the banner's bottom
+   edge rises in the view and progressively reveals the sun; after
+   the camera passes z≈0.5 the banner is behind the user entirely.
+   ============================================================ */
+function OverheadBanner() {
+  const BANNER_Z = 0.5
+  const BANNER_WIDTH = 12
+  const BANNER_BOTTOM_Y = 3.75
+  const BANNER_TOP_Y = 6
+  const BANNER_HEIGHT = BANNER_TOP_Y - BANNER_BOTTOM_Y
+  const BANNER_CENTER_Y = (BANNER_BOTTOM_Y + BANNER_TOP_Y) / 2
+  const ROD_Y = BANNER_TOP_Y + 0.06
+  return (
+    <group position={[0, 0, BANNER_Z]}>
+      {/* Brass support rod running horizontally across the hall */}
+      <mesh rotation={[0, 0, Math.PI / 2]} position={[0, ROD_Y, 0]}>
+        <cylinderGeometry args={[0.05, 0.05, BANNER_WIDTH + 0.4, 16]} />
+        <meshStandardMaterial color={PALETTE.brassBright} metalness={0.9} roughness={0.2} />
+      </mesh>
+      {/* Finial caps on both ends of the rod */}
+      <mesh position={[-(BANNER_WIDTH + 0.4) / 2, ROD_Y, 0]}>
+        <sphereGeometry args={[0.07, 12, 8]} />
+        <meshStandardMaterial color={PALETTE.brassBright} metalness={0.9} roughness={0.2} />
+      </mesh>
+      <mesh position={[(BANNER_WIDTH + 0.4) / 2, ROD_Y, 0]}>
+        <sphereGeometry args={[0.07, 12, 8]} />
+        <meshStandardMaterial color={PALETTE.brassBright} metalness={0.9} roughness={0.2} />
+      </mesh>
+      {/* Chains from the ceiling down to the rod (two drops, symmetric) */}
+      <mesh position={[-3, (ROD_Y + CEILING_Y) / 2, 0]}>
+        <cylinderGeometry args={[0.01, 0.01, CEILING_Y - ROD_Y, 8]} />
+        <meshStandardMaterial color={PALETTE.brass} metalness={0.85} roughness={0.25} />
+      </mesh>
+      <mesh position={[3, (ROD_Y + CEILING_Y) / 2, 0]}>
+        <cylinderGeometry args={[0.01, 0.01, CEILING_Y - ROD_Y, 8]} />
+        <meshStandardMaterial color={PALETTE.brass} metalness={0.85} roughness={0.25} />
+      </mesh>
+      {/* Burgundy cloth — render both sides so users see a nice back
+          face if they happen to look back from deeper in the hall. */}
+      <mesh position={[0, BANNER_CENTER_Y, 0]}>
+        <planeGeometry args={[BANNER_WIDTH, BANNER_HEIGHT]} />
+        <meshStandardMaterial
+          color={PALETTE.forest}
+          roughness={0.9}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      {/* Gold trim along the top edge (just below the rod) */}
+      <mesh position={[0, BANNER_TOP_Y - 0.05, 0.006]}>
+        <planeGeometry args={[BANNER_WIDTH, 0.09]} />
+        <meshStandardMaterial
+          color={PALETTE.brassBright}
+          metalness={0.85}
+          roughness={0.25}
+        />
+      </mesh>
+      {/* Gold trim along the bottom edge */}
+      <mesh position={[0, BANNER_BOTTOM_Y + 0.05, 0.006]}>
+        <planeGeometry args={[BANNER_WIDTH, 0.09]} />
+        <meshStandardMaterial
+          color={PALETTE.brassBright}
+          metalness={0.85}
+          roughness={0.25}
+        />
+      </mesh>
+      {/* Centered emblem — "EST. 2026" in brass serif */}
+      <Text
+        position={[0, BANNER_CENTER_Y + 0.15, 0.008]}
+        fontSize={0.28}
+        color={PALETTE.brassBright}
+        anchorX="center"
+        anchorY="middle"
+        letterSpacing={0.25}
+      >
+        STREAMER LIONS
+      </Text>
+      <Text
+        position={[0, BANNER_CENTER_Y - 0.35, 0.008]}
+        fontSize={0.12}
+        color={PALETTE.brassBright}
+        anchorX="center"
+        anchorY="middle"
+        letterSpacing={0.4}
+      >
+        CLASS OF 2026
+      </Text>
+    </group>
+  )
+}
+
+/* ============================================================
    Main scene content — boutique showroom
    ============================================================ */
 export function SceneContent() {
@@ -705,6 +906,14 @@ export function SceneContent() {
 
       {/* Entrance monogram over the arch */}
       <EntranceMonogram />
+
+      {/* Overhead welcome banner — horizontal burgundy drape hanging
+          across the hall between the entrance and the Hoodies rack.
+          Positioned so from the entrance camera pose the bottom edge
+          lands on the hero sun's center line (partially occludes the
+          sun). As the user scrolls forward and walks underneath, the
+          banner rises in their view and the sun becomes fully visible. */}
+      <OverheadBanner />
 
       {/* Streamer Lions banners — hang below the windows (windows span
           y=5.6 to y=8.0). Banner centered at y=3.8 spans y=2.5 to y=5.1,
