@@ -1089,11 +1089,12 @@ export function SceneContent() {
       <BackWallCrest />
 
       {/* Hero pedestals — smaller plinths with the hoodie mockups
-          floating above, no hanger wire (reads as a display-piece). */}
+          sitting tightly on top (PNG bottom edge at ~pedestal top).
+          No hanger wire (reads as a display-piece). */}
       <group position={[-1.8, 0, -11.5]}>
         <PedestalSmall scale={0.7}>
           <HangingGarment
-            position={[0, 1.25, 0]}
+            position={[0, 0.82, 0]}
             color={PALETTE.forest}
             type="hoodie"
             label="SU"
@@ -1107,7 +1108,7 @@ export function SceneContent() {
       <group position={[1.8, 0, -11.5]}>
         <PedestalSmall scale={0.7}>
           <HangingGarment
-            position={[0, 1.25, 0]}
+            position={[0, 0.82, 0]}
             color={PALETTE.walnut}
             type="hoodie"
             label="VARSITY"
