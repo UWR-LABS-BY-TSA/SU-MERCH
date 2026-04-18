@@ -23,12 +23,13 @@ export const PRODUCTS: Product[] = [
     description:
       "14-oz cotton-fleece pullover with embroidered SU crest, antique-brass eyelets, and a boxy drop-shoulder fit. Pre-washed for that lived-in campus feel.",
     colors: [
-      { label: "Walnut", hex: "#3a2418" },
-      { label: "Forest", hex: "#1b3a2b" },
+      { label: "Burgundy", hex: "#93000B" },
+      { label: "Gold", hex: "#FFB100" },
       { label: "Cream", hex: "#f1e6c8" },
     ],
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-    tags: ["Bestseller", "Class of '24"],
+    imageUrl: "/hoodie-1.png",
+    tags: ["Bestseller", "Class of '26"],
   },
   {
     id: "kai-hoodie",
@@ -36,13 +37,13 @@ export const PRODUCTS: Product[] = [
     price: 120,
     type: "hoodie",
     description:
-      "Heavyweight fleece with chainstitched 'KAI' script. Limited run of 2,024 — numbered hangtag on every piece.",
+      "Heavyweight fleece with chainstitched 'KAI' script. Limited run of 2,025 — numbered hangtag on every piece.",
     colors: [
       { label: "Cream", hex: "#f1e6c8" },
-      { label: "Charcoal", hex: "#1a1713" },
+      { label: "Charcoal", hex: "#14100c" },
     ],
     sizes: ["S", "M", "L", "XL"],
-    tags: ["Limited · 2024 made"],
+    tags: ["Limited · 2026 made"],
   },
   {
     id: "su-crest-hoodie",
@@ -50,9 +51,13 @@ export const PRODUCTS: Product[] = [
     price: 88,
     type: "hoodie",
     description:
-      "The everyday SU crest in forest fleece. Ribbed cuffs and hem, kangaroo pocket.",
-    colors: [{ label: "Forest", hex: "#1b3a2b" }],
+      "The everyday SU crest in burgundy fleece. Ribbed cuffs and hem, kangaroo pocket.",
+    colors: [
+      { label: "Burgundy", hex: "#93000B" },
+      { label: "Gold", hex: "#FFB100" },
+    ],
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+    imageUrl: "/hoodie-2.png",
     tags: ["Everyday"],
   },
   {
@@ -63,8 +68,8 @@ export const PRODUCTS: Product[] = [
     description: "220-gsm ringspun cotton. Screen-printed campus-tour list on the back.",
     colors: [
       { label: "Cream", hex: "#f1e6c8" },
-      { label: "Forest", hex: "#1b3a2b" },
-      { label: "Red", hex: "#7a1f1f" },
+      { label: "Burgundy", hex: "#93000B" },
+      { label: "Gold", hex: "#FFB100" },
     ],
     sizes: ["XS", "S", "M", "L", "XL"],
   },
@@ -75,9 +80,9 @@ export const PRODUCTS: Product[] = [
     type: "mug",
     description: "12-oz vitreous-enamel mug with a chip-resistant rim. Ceramic-safe up to 400°F.",
     colors: [
-      { label: "Forest", hex: "#1b3a2b" },
+      { label: "Burgundy", hex: "#93000B" },
       { label: "Cream", hex: "#f1e6c8" },
-      { label: "Walnut", hex: "#3a2418" },
+      { label: "Gold", hex: "#FFB100" },
     ],
   },
   {
@@ -87,8 +92,8 @@ export const PRODUCTS: Product[] = [
     type: "cap",
     description: "Low-profile six-panel cap with 3D embroidered SU. Brass buckle closure.",
     colors: [
-      { label: "Forest", hex: "#1b3a2b" },
-      { label: "Charcoal", hex: "#1a1713" },
+      { label: "Burgundy", hex: "#93000B" },
+      { label: "Charcoal", hex: "#14100c" },
       { label: "Cream", hex: "#f1e6c8" },
     ],
     sizes: ["One size"],
@@ -99,7 +104,7 @@ export const PRODUCTS: Product[] = [
     price: 28,
     type: "tote",
     description: "12-oz duck canvas tote with reinforced double-stitched straps. Holds 4 textbooks.",
-    colors: [{ label: "Forest", hex: "#1b3a2b" }],
+    colors: [{ label: "Burgundy", hex: "#93000B" }],
   },
 ]
 

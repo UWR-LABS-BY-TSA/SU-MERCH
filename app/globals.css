@@ -130,3 +130,85 @@
     @apply bg-background;
   }
 }
+
+/* Landing-page candle flicker — GPU-cheap opacity + blur pulse. */
+@keyframes su-flicker {
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: translateY(0) scale(1);
+  }
+  45% {
+    opacity: 0.45;
+    transform: translateY(-2px) scale(0.92);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(1px) scale(1.06);
+  }
+}
+
+.animate-flicker {
+  animation-name: su-flicker;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-flicker {
+    animation: none;
+  }
+}
+
+/* ==============================================================
+   Microfiche product panel — projector "warm-up" flicker + scanline
+   ============================================================== */
+@keyframes microfiche-open {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+    filter: brightness(0.3);
+  }
+  6% {
+    opacity: 1;
+    filter: brightness(1.4);
+  }
+  10% {
+    opacity: 0.55;
+    filter: brightness(0.7);
+  }
+  18% {
+    opacity: 1;
+    filter: brightness(1.15);
+  }
+  26% {
+    opacity: 0.78;
+    filter: brightness(0.9);
+  }
+  38% {
+    opacity: 1;
+    filter: brightness(1.05);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: brightness(1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+.animate-microfiche-open {
+  animation: microfiche-open 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: center center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-microfiche-open {
+    animation: none;
+  }
+}

@@ -7,10 +7,6 @@ const listeners = new Set<(v: number) => void>()
 
 let _scrollEl: HTMLElement | null = null
 
-type CamState = { x: number; z: number; yaw: number }
-let _cam: CamState = { x: 0, z: 9, yaw: 0 }
-const camListeners = new Set<(v: CamState) => void>()
-
 export function setScrollOffset(v: number) {
   if (_scroll === v) return
   _scroll = v
@@ -27,24 +23,6 @@ export function setScrollEl(el: HTMLElement | null) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(window as any).__scrollEl = el
   }
-}
-
-export function setCamState(x: number, z: number, yaw: number) {
-  if (_cam.x === x && _cam.z === z && _cam.yaw === yaw) return
-  _cam = { x, z, yaw }
-  camListeners.forEach((l) => l(_cam))
-}
-
-export function useCamState() {
-  const [value, setValue] = useState<CamState>(_cam)
-  useEffect(() => {
-    const handler = (v: CamState) => setValue(v)
-    camListeners.add(handler)
-    return () => {
-      camListeners.delete(handler)
-    }
-  }, [])
-  return value
 }
 
 export function scrollToPct(pct: number, smooth = true) {

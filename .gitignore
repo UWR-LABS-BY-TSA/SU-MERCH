@@ -14,3 +14,9 @@ next.user-config.*
 node_modules
 .next/
 .DS_Store
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Local assistant workflow files (plan drafts, launch config, local settings)
+.claude/
